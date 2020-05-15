@@ -5,7 +5,9 @@ The script currently does the following:
 
 1. open the main page of the xkcd comics
 1. get title, hover text, permalink and embed url for current image + link to previous image
-1. download image, print file name, title, hover text, permalink and embed url
-1. open previous image page and repeat steps 2 - 4 in the range specified
+1. download image
+1. print file name, title, hover text, permalink and embed url
+1. save file name, title, hover text, permalink and embed url to .xslx document
+1. open previous image page and repeat steps 2 - 5 in the range specified
 
 Currently working on adding functionality for writing image data to an excel table.
