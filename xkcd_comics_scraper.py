@@ -1,8 +1,18 @@
 import requests
 import bs4
 import re
+import openpyxl
 
 start_url = 'https://xkcd.com/'
+workbook = openpyxl.Workbook()
+workbook.create_sheet('xkcd_catalog', 0)
+wb_sheet = workbook['xkcd_catalog']
+
+wb_sheet['A1'] = 'File Name'
+wb_sheet['B1'] = 'Image Title'
+wb_sheet['C1'] = 'Hover Text'
+wb_sheet['D1'] = 'Permalink'
+wb_sheet['E1'] = 'Embed URL'
 
 
 def get_xkcd_image_data(page_url):
@@ -33,15 +43,15 @@ def get_xkcd_image_data(page_url):
 
     img_embed_url = embed_url_regex.search(permalink_container.text).group()
 
-    data = {'soup': soup,
-            'url': clean_url,
-            'hover': img_alt,
-            'title': img_title,
-            'permalink': img_permalink,
-            'embed_url': img_embed_url,
-            }
+    img_data = {'soup': soup,
+                'url': clean_url,
+                'hover': img_alt,
+                'title': img_title,
+                'permalink': img_permalink,
+                'embed_url': img_embed_url,
+                }
 
-    return data
+    return img_data
 
 
 def download_xkcd_image(img_url, img_num):
@@ -60,6 +70,15 @@ def download_xkcd_image(img_url, img_num):
             # counter += 1
 
 
+def write_image_data_to_file(sheet, row, img_data):
+    row += 1
+    sheet[f'A{row}'] = img_data['file_name']
+    sheet[f'B{row}'] = img_data['title']
+    sheet[f'C{row}'] = img_data['hover']
+    sheet[f'D{row}'] = img_data['permalink']
+    sheet[f'E{row}'] = img_data['embed_url']
+
+
 def find_next_url(soup):
     url_selector = 'ul.comicNav li a'
     urls = soup.select(url_selector)
@@ -69,13 +88,18 @@ def find_next_url(soup):
 
 data = get_xkcd_image_data(start_url)
 
-for i in range(1, 3):
+for i in range(1, 13):
     download_xkcd_image(data['url'], i)
+    data['file_name'] = f'img_{i}.png'
     print('File name:', f'img_{i}.png')
     print('Title:', data['title'])
     print('Text on hover:', data['hover'])
     print('Permalink:', data['permalink'])
     print('Embed URL:', data['embed_url'])
+    write_image_data_to_file(wb_sheet, i, data)
     prev_image_url = find_next_url(data['soup'])
     data = get_xkcd_image_data(prev_image_url)
-    print('__________________________________________________________________________\n\n')
+    print('-' * 25, '\n\n')
+
+workbook.save(r'.\xkcd_comics\xkcd_catalog.xlsx')
+workbook.close()
