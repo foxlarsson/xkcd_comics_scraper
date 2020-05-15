@@ -1,8 +1,10 @@
 import requests
 import bs4
 import re
-import openpyxl
 import os
+import openpyxl
+from openpyxl.styles import Font
+
 
 start_url = 'https://xkcd.com/'
 workbook = openpyxl.Workbook()
@@ -14,6 +16,10 @@ wb_sheet['B1'] = 'Image Title'
 wb_sheet['C1'] = 'Hover Text'
 wb_sheet['D1'] = 'Permalink'
 wb_sheet['E1'] = 'Embed URL'
+
+
+for cell in wb_sheet['1']:
+    cell.font = Font(bold=True)
 
 
 def get_xkcd_image_data(page_url):
@@ -88,7 +94,7 @@ def find_next_url(soup):
 
 data = get_xkcd_image_data(start_url)
 
-for i in range(1, 13):
+for i in range(1, 3):
     download_xkcd_image(data['url'], i)
     data['file_name'] = f'img_{i}.png'
     print('File name:', f'img_{i}.png')
@@ -101,5 +107,5 @@ for i in range(1, 13):
     data = get_xkcd_image_data(prev_image_url)
     print('-' * 25, '\n\n')
 
-workbook.save(os.path.join('.', 'xkcd_comics', 'xkcd_catalog2.xlsx'))
+workbook.save(os.path.join('.', 'xkcd_comics', 'xkcd_catalog3.xlsx'))
 workbook.close()
