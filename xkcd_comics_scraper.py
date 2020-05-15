@@ -7,6 +7,10 @@ from openpyxl.styles import Font
 
 
 start_url = 'https://xkcd.com/'
+download_prompt = 'How many images do you want to download and catalog?' \
+                  'Enter a number for specific number of images' \
+                  'Type ALL if you want to download and catalog all available images\n'
+number_img_to_download = input(download_prompt)
 workbook = openpyxl.Workbook()
 workbook.create_sheet('xkcd_catalog', 0)
 wb_sheet = workbook['xkcd_catalog']
@@ -92,20 +96,40 @@ def find_next_url(soup):
     return prev_url
 
 
+def print_progress(img_data, num):
+    print('File name:', f'img_{num}.png')
+    print('Title:', img_data['title'])
+    print('Text on hover:', img_data['hover'])
+    print('Permalink:', img_data['permalink'])
+    print('Embed URL:', img_data['embed_url'])
+
+
 data = get_xkcd_image_data(start_url)
 
-for i in range(1, 3):
-    download_xkcd_image(data['url'], i)
-    data['file_name'] = f'img_{i}.png'
-    print('File name:', f'img_{i}.png')
-    print('Title:', data['title'])
-    print('Text on hover:', data['hover'])
-    print('Permalink:', data['permalink'])
-    print('Embed URL:', data['embed_url'])
-    write_image_data_to_file(wb_sheet, i, data)
-    prev_image_url = find_next_url(data['soup'])
-    data = get_xkcd_image_data(prev_image_url)
-    print('-' * 25, '\n\n')
 
-workbook.save(os.path.join('.', 'xkcd_comics', 'xkcd_catalog3.xlsx'))
+if number_img_to_download.isnumeric():
+    for i in range(1, int(number_img_to_download) + 1):
+        download_xkcd_image(data['url'], i)
+        data['file_name'] = f'img_{i}.png'
+        print_progress(data, i)
+        write_image_data_to_file(wb_sheet, i, data)
+        prev_image_url = find_next_url(data['soup'])
+        data = get_xkcd_image_data(prev_image_url)
+        print('-' * 25, '\n\n')
+if number_img_to_download == 'ALL':
+    i = 1
+    prev_image_url = ''
+    while prev_image_url.endswith('#') is False:
+        download_xkcd_image(data['url'], i)
+        data['file_name'] = f'img_{i}.png'
+        print_progress(data, i)
+        write_image_data_to_file(wb_sheet, i, data)
+        prev_image_url = find_next_url(data['soup'])
+        print('Previous image:', prev_image_url)
+        data = get_xkcd_image_data(prev_image_url)
+        i += 1
+        print('-' * 25, '\n\n')
+
+
+workbook.save(os.path.join('.', 'xkcd_comics', 'xkcd_catalog.xlsx'))
 workbook.close()
