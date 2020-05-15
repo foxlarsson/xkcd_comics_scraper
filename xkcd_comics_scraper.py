@@ -2,6 +2,7 @@ import requests
 import bs4
 import re
 import openpyxl
+import os
 
 start_url = 'https://xkcd.com/'
 workbook = openpyxl.Workbook()
@@ -40,7 +41,6 @@ def get_xkcd_image_data(page_url):
     # .png or .jpg, names have letters, numbers, underscores, and parentheses
 
     img_permalink = permalink_regex.search(permalink_container.text).group()
-
     img_embed_url = embed_url_regex.search(permalink_container.text).group()
 
     img_data = {'soup': soup,
@@ -62,7 +62,7 @@ def download_xkcd_image(img_url, img_num):
     response = requests.get(img_url, headers=headers)
     response.raise_for_status()
 
-    with open(f'.\\xkcd_comics\\img_{img_num}.png', 'wb') as img_file:
+    with open(os.path.join('.', 'xkcd_comics', f'img_{img_num}.png'), 'wb') as img_file:
         # counter = 0
         for chunk in response.iter_content(100000):
             img_file.write(chunk)
@@ -101,5 +101,5 @@ for i in range(1, 13):
     data = get_xkcd_image_data(prev_image_url)
     print('-' * 25, '\n\n')
 
-workbook.save(r'.\xkcd_comics\xkcd_catalog.xlsx')
+workbook.save(os.path.join('.', 'xkcd_comics', 'xkcd_catalog2.xlsx'))
 workbook.close()
