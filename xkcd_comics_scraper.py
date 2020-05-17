@@ -133,5 +133,5 @@ if number_img_to_download == 'ALL':
         i += 1
 
 
-workbook.save(os.path.join('.', 'xkcd_comics', 'xkcd_catalog4.xlsx'))
+workbook.save(os.path.join('.', 'xkcd_comics', 'xkcd_catalog.xlsx'))
 workbook.close()
