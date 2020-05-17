@@ -6,7 +6,7 @@ import openpyxl
 from openpyxl.styles import Font
 
 
-start_url = 'https://xkcd.com/4'
+start_url = 'https://xkcd.com/'
 download_prompt = 'How many images do you want to download and catalog?\n' \
                   'Enter a number for specific number of images\n' \
                   'Type ALL if you want to download and catalog all available images\n'
