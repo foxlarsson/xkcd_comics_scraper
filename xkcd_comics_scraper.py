@@ -6,9 +6,9 @@ import openpyxl
 from openpyxl.styles import Font
 
 
-start_url = 'https://xkcd.com/'
-download_prompt = 'How many images do you want to download and catalog?' \
-                  'Enter a number for specific number of images' \
+start_url = 'https://xkcd.com/4'
+download_prompt = 'How many images do you want to download and catalog?\n' \
+                  'Enter a number for specific number of images\n' \
                   'Type ALL if you want to download and catalog all available images\n'
 number_img_to_download = input(download_prompt)
 workbook = openpyxl.Workbook()
@@ -52,6 +52,7 @@ def get_xkcd_image_data(page_url):
 
     img_permalink = permalink_regex.search(permalink_container.text).group()
     img_embed_url = embed_url_regex.search(permalink_container.text).group()
+    img_prev_url = find_next_url(soup)
 
     img_data = {'soup': soup,
                 'url': clean_url,
@@ -59,6 +60,7 @@ def get_xkcd_image_data(page_url):
                 'title': img_title,
                 'permalink': img_permalink,
                 'embed_url': img_embed_url,
+                'prev_url': img_prev_url,
                 }
 
     return img_data
@@ -102,6 +104,17 @@ def print_progress(img_data, num):
     print('Text on hover:', img_data['hover'])
     print('Permalink:', img_data['permalink'])
     print('Embed URL:', img_data['embed_url'])
+    print('Previous image:', img_data['prev_url'])
+
+
+def download_sequence(img_data, num):
+    download_xkcd_image(img_data['url'], num)
+    img_data['file_name'] = f'img_{num}.png'
+    print_progress(img_data, num)
+    write_image_data_to_file(wb_sheet, num, img_data)
+    img_data = get_xkcd_image_data(img_data['prev_url'])
+    print('-' * 25, '\n\n')
+    return img_data
 
 
 data = get_xkcd_image_data(start_url)
@@ -109,27 +122,16 @@ data = get_xkcd_image_data(start_url)
 
 if number_img_to_download.isnumeric():
     for i in range(1, int(number_img_to_download) + 1):
-        download_xkcd_image(data['url'], i)
-        data['file_name'] = f'img_{i}.png'
-        print_progress(data, i)
-        write_image_data_to_file(wb_sheet, i, data)
-        prev_image_url = find_next_url(data['soup'])
-        data = get_xkcd_image_data(prev_image_url)
-        print('-' * 25, '\n\n')
+        data = download_sequence(data, i)
 if number_img_to_download == 'ALL':
     i = 1
-    prev_image_url = ''
-    while prev_image_url.endswith('#') is False:
-        download_xkcd_image(data['url'], i)
-        data['file_name'] = f'img_{i}.png'
-        print_progress(data, i)
-        write_image_data_to_file(wb_sheet, i, data)
-        prev_image_url = find_next_url(data['soup'])
-        print('Previous image:', prev_image_url)
-        data = get_xkcd_image_data(prev_image_url)
+    while True:
+        data = download_sequence(data, i)
+        if data['permalink'] == 'https://xkcd.com/1/':
+            download_sequence(data, i)
+            break
         i += 1
-        print('-' * 25, '\n\n')
 
 
-workbook.save(os.path.join('.', 'xkcd_comics', 'xkcd_catalog.xlsx'))
+workbook.save(os.path.join('.', 'xkcd_comics', 'xkcd_catalog4.xlsx'))
 workbook.close()
